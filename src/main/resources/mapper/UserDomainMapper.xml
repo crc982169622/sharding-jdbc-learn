@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.shardingjdbclearn.mapper.UserDomainMapper">
+    <resultMap id="userResultMap" type="com.crc.shardingjdbclearn.domain.UserDomain">
+        <id property="id" column="id"></id>
+        <result property="userName" column="user_name"></result>
+        <result property="password" column="password"></result>
+        <result property="nick" column="nick"></result>
+        <result property="createUser" column="create_user"></result>
+        <result property="createDate" column="create_date"></result>
+        <result property="updateUser" column="update_user"></result>
+        <result property="updateDate" column="update_date"></result>
+        <result property="delFlag" column="del_flag"></result>
+    </resultMap>
+
+    <sql id="sql_column">
+        id,user_name,password,nick,create_user,create_date,update_user,update_date,del_flag
+    </sql>
+
+    <sql id="sql_where">
+        from users where del_flag=0 and type=1
+        <if test="userName!=null and userName!=''">and user_name like #{userName}||'%'</if>
+        <if test="nick != null and nick != ''">and nick like #{nick}||'%'</if>
+    </sql>
+
+    <select id="findUserList" resultMap="userResultMap">
+        select <include refid="sql_column"></include>
+        <include refid="sql_where"></include>
+    </select>
+
+    <select id="findUsers" resultMap="userResultMap">
+        select * from t_user where del_flag=0
+    </select>
+
+<!--    <insert id="addUser" parameterType="com.crc.shardingjdbclearn.domain.UserDomain">
+        <selectKey keyProperty="id" resultType="java.lang.String" order="BEFORE">
+            select replace(uuid(),'-','') from dual
+        </selectKey>
+        insert into t_user(
+        <include refid="sql_column"></include>
+        ) values(#{id}, #{userName}, #{password}, #{nick}, #{createUser}, #{createDate}, null, null, 0)
+    </insert>-->
+
+    <insert id="addUser" useGeneratedKeys="true" keyProperty="id" parameterType="com.crc.shardingjdbclearn.domain.UserDomain">
+        insert into t_user(user_name,password,nick,create_user,create_date,update_user,update_date,del_flag)
+         values(#{userName}, #{password}, #{nick}, #{createUser}, #{createDate}, null, null, 0)
+    </insert>
+
+    <insert id="addUsers" parameterType="com.crc.shardingjdbclearn.domain.UserDomain">
+        insert into t_user(id,user_name,password,nick,create_user,create_date,update_user,update_date,del_flag)
+        values
+        <foreach collection="userList" item="item" index="index" separator=",">
+            (
+            #{item.id},
+            #{item.userName},
+            #{item.password},
+            #{item.nick},
+            #{item.createUser},
+            #{item.createDate},
+            null,
+            null,
+            0)
+        </foreach>
+
+    </insert>
+
+    <select id="findUsersByType" resultMap="userResultMap">
+        select <include refid="sql_column"></include> from users where del_flag=0 and type=#{type}
+    </select>
+
+    <delete id="deleteUsers">
+        delete from t_user
+    </delete>
+
+
+
+
+
+</mapper>
